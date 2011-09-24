@@ -36,6 +36,10 @@ class webParser {
         $this->_source = $source;
     }
 
+    public function set_errors($errors = true) {
+        $this->_show_errors = $errors;
+    }
+
     public function scrape_page($url = '') {
 
         if (empty($url)) {
@@ -373,19 +377,23 @@ class webParser {
     }
 
     private function write_error($msg) {
-        $msg =  '<b>Error:</b> ' . $msg . '<br>';
+        if ($this->_show_errors) {
+            $msg =  '<b>Error:</b> ' . $msg . '<br>';
 
-        if ($this->_die_on_error === true) {
-            die($msg);
-        } else {
-            return $msg;
+            if ($this->_die_on_error === true) {
+                die($msg);
+            } else {
+                return $msg;
+            }
         }
     }
 
     private function print_soft_error($msg) {
-        $msg =  '<b>Error:</b> ' . $msg . '<br>';
-        echo $msg;
-        return false;
+        if ($this->_show_errors) {
+            $msg =  '<b>Error:</b> ' . $msg . '<br>';
+            echo $msg;
+            return false;
+        }
     }
 
 
