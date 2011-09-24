@@ -304,7 +304,7 @@ class webParser {
         //pr($table_rows);
 
         if (!empty($table_rows)) {
-            pr($options);
+            
             foreach ($table_rows[0] as $i => $row) {
 
                 preg_match_all("'<td(.*?)</td>'si", $row, $cells);
