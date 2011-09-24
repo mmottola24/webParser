@@ -318,7 +318,7 @@ class webParser {
 
                         $cell = trim(strip_tags($cell));
 
-                        if ($i === 0 && $options['use_first_as_keys'] != false) {
+                        if ($i === 0 && $options['use_first_as_keys'] != false && empty($options['fields'])) {
                             //is first row and first row is set to be the headers
                             if (empty($cell)) {
                                 $cell = 'null';
@@ -330,8 +330,11 @@ class webParser {
                             $headers[$j] = trim(strtolower($cell));
 
                         } else {
-                            if (!empty($options['fields']))
-                            $data[$i][] = trim($cell);
+                            if (isset($options['fields']) && !empty($options['fields'][$j])) {
+                                $data[$i][$options['fields'][$j]] = trim($cell);
+                            } elseif (!isset($options['fields'])) {
+                                $data[$i][] = trim($cell);
+                            }
                         }
 
 
