@@ -2,7 +2,7 @@
 
 A Tool for scraping web pages, and performing actions on the html markup such as converting an html table to a json object.
 
-Note: 
+**Note:**
 Using this parser requires you to know a bit about the markup of the page you wish to scrape.  
 It was initially designed for parsing html tables and converting the content into a JSON file,
 for the purpose of caching content for a mobile app.
@@ -12,8 +12,7 @@ for the purpose of caching content for a mobile app.
 * Get HTML snippets from any elements on a page
 * Convert HTML elements into an array or JSON
   * Supported on TABLE, DL, UL, OL, SELECT
-  
-***
+
   
 ## Examples
 
@@ -81,7 +80,7 @@ This Outputs:
 
 	$html = $wp->scrape_snippet('table', array('offset' => 3));
 	
-### 
+### Get Array from third table element on a page
 	
-	$html = $wp->scrape_snippet('table', array('offset'=>1));
+	$html = $wp->scrape_snippet('table', array('offset'=>3));
 	$json = $wp->element_to_array('table');
