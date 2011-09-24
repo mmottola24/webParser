@@ -68,7 +68,12 @@ class webParser {
         $offset = (!empty($options['offset'])) ? $options['offset'] : 0;
 
         if (empty($html)) {
-            $html = $this->get_source();
+            $html = $this->_source_section;
+
+            //if still empty than get page source
+            if (empty($html)) {
+                 $html = $this->get_source();
+            }
 
             //if still empty than scrape page
             if (empty($html)) {
@@ -233,7 +238,6 @@ class webParser {
     }
 
     protected function parse_html($id, $options = array()) {
-
         $html = $options['html'];
 
         /* Options */
