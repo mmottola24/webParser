@@ -203,7 +203,7 @@ class webParser {
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
                 // use a user agent to mimic a browser
-                curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.5) Gecko/20041107 Firefox/1.0');
+                curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 5.1; rv:2.0) Gecko/20100101 Firefox/4.0');
 
                 $data = curl_exec($ch);
 
