@@ -304,6 +304,7 @@ class webParser {
         //pr($table_rows);
 
         if (!empty($table_rows)) {
+            pr($options);
             foreach ($table_rows[0] as $i => $row) {
 
                 preg_match_all("'<td(.*?)</td>'si", $row, $cells);
@@ -311,13 +312,13 @@ class webParser {
                 if (!empty($cells)) {
                     foreach ($cells[0] as $j => $cell) {
 
-                        //todo: add check to see if colspan exists in table cell attribute
+                        // @todo: add check to see if colspan exists in table cell attribute
 
                         $cell = preg_replace(array("'<td(.*?)>'si","'</td>'"), '', $cell); //give me all character between the opening tag and ending tag
 
                         $cell = trim(strip_tags($cell));
 
-                        if ($i === 0 && $options['use_as_header'] !== false) {
+                        if ($i === 0 && $options['first_row_as_header'] != false) {
                             //is first row and first row is set to be the headers
                             if (empty($cell)) {
                                 $cell = 'null';
@@ -329,7 +330,7 @@ class webParser {
                             $headers[$j] = trim(strtolower($cell));
 
                         } else {
-                            $data[$i][$headers[$j]] = trim($cell);
+                            $data[$i][] = trim($cell);
                         }
 
 
