@@ -61,8 +61,11 @@ class webParser {
         return $file_contents;
 
     }
-    
-    function scrape_snippet($id, $html = '') {
+
+    function scrape_snippet($id, $options = array()) {
+
+        $html = (!empty($options['html'])) ? $options['html'] : '';
+        $offset = (!empty($options['offset'])) ? $options['offset'] : 0;
 
         if (empty($html)) {
             $html = $this->get_source();
@@ -87,8 +90,8 @@ class webParser {
                 break;
         }
 
-        $start_tag_pos = strpos($html, $search_str);
 
+        $start_tag_pos = strpos($html, $search_str);
 
         if (substr($search_str, 0, 1) !== '<') {
 
@@ -97,7 +100,7 @@ class webParser {
             $pos_of_next_space = 0;
 
             while ($found == false) {
-                
+
                 if (substr($html, $i, 1) == '<') {
                     $found = true;
                     $start_tag_pos = $i;
@@ -115,12 +118,18 @@ class webParser {
         }
 
         //remove all html before opening tag
+        $old_html = $html;
         $html = substr($html, $start_tag_pos);
 
         //find end tag
         $end_tag_pos = $this->find_end_tag_pos($html, $element_tag);
 
         $html = substr($html, 0, $end_tag_pos);
+
+        if ($offset > 0) {
+            $old_html = str_replace($html, '', $old_html);
+            $html = $this->scrape_snippet($id, array('html'=>$old_html, 'offset'=>$offset - 1));
+        }
 
         $this->_source_section = $html;
 
@@ -199,7 +208,7 @@ class webParser {
             if (function_exists('curl_init')) {
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_URL, $file);
-                
+
                 // don't give me the headers just the content
                 curl_setopt($ch, CURLOPT_HEADER, 0);
 
@@ -229,7 +238,7 @@ class webParser {
 
         /* Options */
         if (empty($options['html'])) {
-            $html = $this->get_html($id);
+            $html = $this->get_html($id, $options);
         }
         $element_type = $this->get_element_tag($html);
 
@@ -347,16 +356,16 @@ class webParser {
 
         return true;
     }
-    
+
     public function clear() {
     	$this->_source_section = '';
     	$this->_source = '';
     }
 
-    private function get_html($id = '') {
+    private function get_html($id = '', $options = array()) {
 
         if (!empty($id)) {
-            $html = $this->scrape_snippet($id);
+            $html = $this->scrape_snippet($id, $options);
         } else {
             $html = $this->_source_section;
         }
@@ -365,7 +374,7 @@ class webParser {
             $html = $this->_source;
 
             if (empty($html)) {
-                $html = $this->scrape_snippet($id);
+                $html = $this->scrape_snippet($id, $options);
             }
 
             if (empty($html)) {
