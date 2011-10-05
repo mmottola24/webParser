@@ -36,6 +36,10 @@ class webParser {
         $this->_source = $source;
     }
 
+    public function set_errors($errors = true) {
+        $this->_show_errors = $errors;
+    }
+
     public function scrape_page($url = '') {
 
         if (empty($url)) {
@@ -57,11 +61,19 @@ class webParser {
         return $file_contents;
 
     }
-    
-    function scrape_snippet($id, $html = '') {
+
+    function scrape_snippet($id, $options = array()) {
+
+        $html = (!empty($options['html'])) ? $options['html'] : '';
+        $offset = (!empty($options['offset'])) ? $options['offset'] : 0;
 
         if (empty($html)) {
-            $html = $this->get_source();
+            $html = $this->_source_section;
+
+            //if still empty than get page source
+            if (empty($html)) {
+                 $html = $this->get_source();
+            }
 
             //if still empty than scrape page
             if (empty($html)) {
@@ -83,8 +95,8 @@ class webParser {
                 break;
         }
 
-        $start_tag_pos = strpos($html, $search_str);
 
+        $start_tag_pos = strpos($html, $search_str);
 
         if (substr($search_str, 0, 1) !== '<') {
 
@@ -93,7 +105,7 @@ class webParser {
             $pos_of_next_space = 0;
 
             while ($found == false) {
-                
+
                 if (substr($html, $i, 1) == '<') {
                     $found = true;
                     $start_tag_pos = $i;
@@ -111,12 +123,18 @@ class webParser {
         }
 
         //remove all html before opening tag
+        $old_html = $html;
         $html = substr($html, $start_tag_pos);
 
         //find end tag
         $end_tag_pos = $this->find_end_tag_pos($html, $element_tag);
 
         $html = substr($html, 0, $end_tag_pos);
+
+        if ($offset > 0) {
+            $old_html = str_replace($html, '', $old_html);
+            $html = $this->scrape_snippet($id, array('html'=>$old_html, 'offset'=>$offset - 1));
+        }
 
         $this->_source_section = $html;
 
@@ -139,6 +157,10 @@ class webParser {
         $i = 0;
 
         while ($found == false) {
+
+            if (strlen($html) < ($pos_start_tag + $start_tag_offset)) {
+                break;
+            }
 
             $pos_start_tag = strpos($html, '<' . $element_tag, $pos_start_tag + $start_tag_offset);
 
@@ -195,7 +217,7 @@ class webParser {
             if (function_exists('curl_init')) {
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_URL, $file);
-                
+
                 // don't give me the headers just the content
                 curl_setopt($ch, CURLOPT_HEADER, 0);
 
@@ -203,7 +225,7 @@ class webParser {
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
                 // use a user agent to mimic a browser
-                curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.5) Gecko/20041107 Firefox/1.0');
+                curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 5.1; rv:2.0) Gecko/20100101 Firefox/4.0');
 
                 $data = curl_exec($ch);
 
@@ -220,12 +242,11 @@ class webParser {
     }
 
     protected function parse_html($id, $options = array()) {
-
         $html = $options['html'];
 
         /* Options */
         if (empty($options['html'])) {
-            $html = $this->get_html($id);
+            $html = $this->get_html($id, $options);
         }
         $element_type = $this->get_element_tag($html);
 
@@ -287,6 +308,7 @@ class webParser {
         //pr($table_rows);
 
         if (!empty($table_rows)) {
+            
             foreach ($table_rows[0] as $i => $row) {
 
                 preg_match_all("'<td(.*?)</td>'si", $row, $cells);
@@ -294,13 +316,13 @@ class webParser {
                 if (!empty($cells)) {
                     foreach ($cells[0] as $j => $cell) {
 
-                        //todo: add check to see if colspan exists in table cell attribute
+                        // @todo: add check to see if colspan exists in table cell attribute
 
                         $cell = preg_replace(array("'<td(.*?)>'si","'</td>'"), '', $cell); //give me all character between the opening tag and ending tag
 
                         $cell = trim(strip_tags($cell));
 
-                        if ($i === 0 && $options['use_as_header'] !== false) {
+                        if ($i === 0 && $options['use_first_as_keys'] != false && empty($options['fields'])) {
                             //is first row and first row is set to be the headers
                             if (empty($cell)) {
                                 $cell = 'null';
@@ -312,7 +334,11 @@ class webParser {
                             $headers[$j] = trim(strtolower($cell));
 
                         } else {
-                            $data[$i][$headers[$j]] = trim($cell);
+                            if (isset($options['fields']) && !empty($options['fields'][$j])) {
+                                $data[$i][$options['fields'][$j]] = trim($cell);
+                            } elseif (!isset($options['fields'])) {
+                                $data[$i][] = trim($cell);
+                            }
                         }
 
 
@@ -343,16 +369,16 @@ class webParser {
 
         return true;
     }
-    
+
     public function clear() {
     	$this->_source_section = '';
     	$this->_source = '';
     }
 
-    private function get_html($id = '') {
+    private function get_html($id = '', $options = array()) {
 
         if (!empty($id)) {
-            $html = $this->scrape_snippet($id);
+            $html = $this->scrape_snippet($id, $options);
         } else {
             $html = $this->_source_section;
         }
@@ -361,7 +387,7 @@ class webParser {
             $html = $this->_source;
 
             if (empty($html)) {
-                $html = $this->scrape_snippet($id);
+                $html = $this->scrape_snippet($id, $options);
             }
 
             if (empty($html)) {
@@ -373,19 +399,23 @@ class webParser {
     }
 
     private function write_error($msg) {
-        $msg =  '<b>Error:</b> ' . $msg . '<br>';
+        if ($this->_show_errors) {
+            $msg =  '<b>Error:</b> ' . $msg . '<br>';
 
-        if ($this->_die_on_error === true) {
-            die($msg);
-        } else {
-            return $msg;
+            if ($this->_die_on_error === true) {
+                die($msg);
+            } else {
+                return $msg;
+            }
         }
     }
 
     private function print_soft_error($msg) {
-        $msg =  '<b>Error:</b> ' . $msg . '<br>';
-        echo $msg;
-        return false;
+        if ($this->_show_errors) {
+            $msg =  '<b>Error:</b> ' . $msg . '<br>';
+            echo $msg;
+            return false;
+        }
     }
 
 
