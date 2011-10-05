@@ -11,7 +11,8 @@ for the purpose of caching content for a mobile app.
 
 * Get HTML snippets from any elements on a page
 * Convert HTML elements into an array or JSON
-  * Supported on TABLE, DL, UL, OL, SELECT
+  * Supported on TABLE
+  * will soon support: DL, UL, OL, SELECT
 
   
 ## Examples
@@ -33,11 +34,12 @@ for the purpose of caching content for a mobile app.
 
 * use_first_as_keys: [boolean =true] uses first element grouping as field name, ex: uses first row of table
 * fields: [array] allows you to choose which columns to take and what the field translates to
+* blank_cell_value: [string] when parsing a <table> this value will replace blank cells in the headers key
 
 ### Choosing Fields
 You can choose which columns from an html table you want to record.  You also can set the key name on the output
 
-	$arr = $wp->element_to_array('table', array(
+	$scores = $wp->element_to_array('.scores-table', array(
 		'fields' => array(
 			'0'=>'away_team',
 			'1'=>'away_score',
@@ -70,6 +72,10 @@ This Outputs:
         )
 
 ## Other Examples
+
+### Set first column header index
+	
+	$wp->element_to_array('.standings_table', array('blank_cell_value'=>'team_name'));
 
 ### Scraping an element that doesn't have a identifier
 
