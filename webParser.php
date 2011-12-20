@@ -158,6 +158,10 @@ class webParser {
 
         while ($found == false) {
 
+            if (strlen($html) < ($pos_start_tag + $start_tag_offset)) {
+                break;
+            }
+
             $pos_start_tag = strpos($html, '<' . $element_tag, $pos_start_tag + $start_tag_offset);
 
             $prev_end_tag = $pos_end_tag;
@@ -318,7 +322,7 @@ class webParser {
 
                         $cell = trim(strip_tags($cell));
 
-                        if ($i === 0 && $options['use_first_as_keys'] != false && empty($options['fields'])) {
+                        if ($i === 0 && (!isset($options['use_first_as_keys']) || $options['use_first_as_keys'] == true)) {
                             //is first row and first row is set to be the headers
                             if (empty($cell)) {
                                 $cell = 'null';
@@ -333,17 +337,18 @@ class webParser {
                             if (isset($options['fields']) && !empty($options['fields'][$j])) {
                                 $data[$i][$options['fields'][$j]] = trim($cell);
                             } elseif (!isset($options['fields'])) {
-                                $data[$i][] = trim($cell);
+                                $data[$i][$headers[$j]] = trim($cell);
                             }
                         }
 
 
                     }
 
+
                 } else {
                     $this->print_soft_error('No Cells Found');
                 }
-
+ 
             }
         }
 
