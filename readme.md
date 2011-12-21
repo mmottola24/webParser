@@ -11,9 +11,7 @@ for the purpose of caching content for a mobile app.
 
 * Get HTML snippets from any elements on a page
 * Convert HTML elements into an array or JSON
-  * Supported on TABLE
-  * will soon support: DL, UL, OL, SELECT
-
+  * Supported on TABLE tag
   
 ## Examples
 
@@ -24,11 +22,16 @@ for the purpose of caching content for a mobile app.
 
 ### Setting a URL to scrape
 	
-	$wp->set_url('http://mysitetoscrap.com');
+	$wp->set_url('http://mysitetoscrape.com');
 
 ### Scrape a certain element referencing it by element ID
 
-	$html = $wp->scrap_snippet('#user_profile');
+	$html = $wp->scrape_snippet('#user_profile');
+	
+### Scrape HTML table and save JSON output
+
+	$json = $wp->element_to_json('#game-results');
+	$wp->save_file('/mypath/results.json', $json);
 
 ## Options
 
@@ -89,4 +92,4 @@ This Outputs:
 ### Get Array from third table element on a page
 	
 	$html = $wp->scrape_snippet('table', array('offset'=>3));
-	$json = $wp->element_to_array('table');
+	$data = $wp->element_to_array('table');
