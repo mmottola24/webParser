@@ -31,6 +31,7 @@ for the purpose of caching content for a mobile app.
 ### Scrape HTML table and save JSON output
 
 	$json = $wp->element_to_json('#game-results');
+	
 	$wp->save_file('/mypath/results.json', $json);
 
 ## Options
